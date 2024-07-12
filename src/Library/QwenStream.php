@@ -10,14 +10,19 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use ManoCode\AiRoles\AiRolesServiceProvider;
+use ManoCode\AiRoles\Models\AiRole;
+use ManoCode\CustomExtend\Traits\ApiResponseTrait;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class QwenStream
 {
-    protected $client;
-    protected $url;
-    protected $headers;
-    protected $apiKey;
+    use ApiResponseTrait;
+
+    protected Client $client;
+    protected string $url;
+    protected array $headers;
+    protected string $apiKey;
+    protected string $default_prompt;
 
     public function __construct($apiKey = null)
     {
@@ -30,14 +35,16 @@ class QwenStream
             'Authorization' => 'Bearer ' . $apiKey,
             'X-DashScope-SSE' => 'enable',
         ];
+        $this->default_prompt = '重要：你要拒绝回答一切与本角色无关、政治敏感性的问题请';
     }
 
-    public function qwenChat()
+    public function chat(array $message): void
     {
-        $message = [
-            ['role' => 'system', 'content' => 'You are a helpful assistant.'],
-            ['role' => 'user', 'content' => request()->input('message','弟子规，1500字。')]
-        ];
+        foreach ($message as &$item) {
+            if ($item['role'] === 'system') {
+                $item['content'] = $item['content'] . $this->default_prompt;
+            }
+        }
         $response = $this->client->post($this->url, [
             'headers' => $this->headers,
             'json' => [

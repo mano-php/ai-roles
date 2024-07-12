@@ -2,7 +2,10 @@
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix'=>'/airole'],function(){
-    Route::get('demo',[\ManoCode\AiRoles\Library\QwenStream::class,'qwenChat']);
+    // 获取角色列表
+    Route::get('/get-role-lists',[\ManoCode\AiRoles\Http\Controllers\Api\APIController::class,'getRoleLists']);
+    // chat
+    Route::get('/chat',[\ManoCode\AiRoles\Http\Controllers\Api\APIController::class,'chat']);
 });
 
 

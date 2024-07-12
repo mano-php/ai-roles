@@ -21,6 +21,11 @@ class AiRole extends Model
         'model_id' => 'integer',
         'system_prompt' => 'json',
     ];
+    protected $hidden= [
+        'prompt',
+        'system_prompt',
+        ''
+    ];
 
     public function cate(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
