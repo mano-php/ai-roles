@@ -1,0 +1,33 @@
+{
+    "name": "mano-code/ai-roles",
+    "alias": "AI角色模块",
+    "description": "提供AI角色管理和定制",
+    "type": "library",
+    "version": "1.0.0",
+    "keywords": ["extension"],
+    "homepage": "https://github.com/mano-code/ai-roles",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mano",
+            "email": "ManoCode@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.0",
+        "slowlyo/owl-admin": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "ManoCode\\AiRoles\\": "src/"
+        }
+    },
+    "extra": {
+        "owl-admin": "ManoCode\\AiRoles\\AiRolesServiceProvider",
+        "laravel": {
+            "providers": [
+                "ManoCode\\AiRoles\\AiRolesServiceProvider"
+            ]
+        }
+    }
+}
