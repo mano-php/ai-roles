@@ -31,72 +31,63 @@ class QwenStream
             'X-DashScope-SSE' => 'enable',
         ];
     }
-    public function pushChat()
-    {
 
-            $message = [
-                ['role' => 'system', 'content' => 'You are a helpful assistant.'],
-                ['role' => 'user', 'content' => '写个歌']
-            ];
-            $body = [
+    public function qwenChat()
+    {
+        $message = [
+            ['role' => 'system', 'content' => 'You are a helpful assistant.'],
+            ['role' => 'user', 'content' => '弟子规、每句换行。给我1500字。以外的不需要。']
+        ];
+        $response = $this->client->post($this->url, [
+            'headers' => $this->headers,
+            'json' => [
                 'model' => 'qwen-turbo',
                 'input' => [
-                    'messages'=>$message
+                    'messages' => $message
                 ],
-                'parameters'=>[
+                'parameters' => [
                     'incremental_output' => true,
                     'result_format' => 'message',
                 ],
-            ];
-            try {
-            $response = $this->client->post($this->url, [
-                'headers' =>  $this->headers,
-                'json' => $body,
-                'stream' => true,
-            ]);
+            ],
+            'stream' => true,
+        ]);
 
-            $body = $response->getBody();
-            if (ob_get_level() == 0) ob_start();
-//            if (ob_get_level()) ob_end_clean();
-//            ob_implicit_flush(1);
+        $body = $response->getBody();
+
+        $response = new StreamedResponse();
+
+        $response->setCallback(function () use ($body){
             while (!$body->eof()) {
                 $line = $body->read(1024);
                 $this->processStreamData($line);
             }
-            ob_end_flush();
-
-        } catch (RequestException $e) {
-            Log::error('Request failed: ' . $e->getMessage());
-            return response()->json(['error' => 'Request failed: ' . $e->getMessage()], 500);
-        }
+        });
+        $response->headers->set('Content-Type', 'text/event-stream');
+        $response->headers->set('Transfer-Encoding', 'chunked');
+        $response->headers->set('X-Accel-Buffering', 'no');
+        $response->headers->set('Cache-Control', 'no-cache');
+        $response->send();
     }
-    public function qwenChat()
-    {
 
-        header('Content-Type: text/event-stream; charset=utf-8');
-        header('Cache-Control: no-cache');
-//        header('Transfer-Encoding: chunked');
-        header('X-Accel-Buffering: no');
-        $this->pushChat();
-//        return  new StreamedResponse(function() {
-//            $this->pushChat();
-//            echo PHP_EOL;
-//        }, 200, [
-//            'Content-Type' => 'text/event-stream',
-//            'Cache-Control' => 'no-cache',
-//            'X-Accel-Buffering' => 'no',
-//        ]);
-    }
     protected function processStreamData($response)
     {
         $lines = explode("\n", $response);
+//        Log::info('开始接收数据:'.$response);
         foreach ($lines as $line) {
             if (strpos($line, 'data:') === 0) {
                 $data = substr($line, 5);
-                $decodedData = json_decode($data, true);
+//                Log::info('数据内容:'.$data);
+                try{
+                    $decodedData = json_decode($data, true);
+                }catch (\Throwable $throwable){
+//                    Log::info('JSON不合法:'.$data);
+                    continue;
+                }
+//                Log::info('JSON内容:'.json_encode($decodedData));
                 if (isset($decodedData['output']['choices'][0]['message']['content'])) {
-                    echo $decodedData['output']['choices'][0]['message']['content'];
-                    ob_flush();
+                    echo 'data: '.$decodedData['output']['choices'][0]['message']['content'];
+//                    Log::info('流式输出:'.$data);
                     flush();
                 }
             }
