@@ -36,7 +36,7 @@ class QwenStream
     {
         $message = [
             ['role' => 'system', 'content' => 'You are a helpful assistant.'],
-            ['role' => 'user', 'content' => '弟子规、每句换行。给我1500字。以外的不需要。']
+            ['role' => 'user', 'content' => request()->input('message','弟子规，1500字。')]
         ];
         $response = $this->client->post($this->url, [
             'headers' => $this->headers,
@@ -57,13 +57,29 @@ class QwenStream
 
         $response = new StreamedResponse();
 
-        $response->setCallback(function () use ($body){
+        $response->setCallback(function () use ($body) {
             echo "id: \nevent: start\ndata: {}\n\n";
+            $buffer = '';
             while (!$body->eof()) {
-                $line = $body->read(1024);
-                echo "$line";
+                $chunk = $body->read(1024); // 读取一个较大的块
+                $buffer .= $chunk;
+
+                while (($pos = strpos($buffer, "\n\n")) !== false) {
+                    $package = substr($buffer, 0, $pos + 2);
+                    $buffer = substr($buffer, $pos + 2);
+
+                    // 处理并输出完整的数据包
+                    echo $package;
+                    flush();
+                }
+            }
+
+            // 处理最后可能剩余的不完整数据包
+            if (!empty($buffer)) {
+                echo $buffer;
                 flush();
             }
+
             echo "id: \nevent: done\ndata: {}\n\n";
         });
         $response->headers->set('Content-Type', 'text/event-stream');
