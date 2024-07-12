@@ -58,39 +58,18 @@ class QwenStream
         $response = new StreamedResponse();
 
         $response->setCallback(function () use ($body){
+            echo "id: \nevent: start\ndata: {}\n\n";
             while (!$body->eof()) {
                 $line = $body->read(1024);
-                $this->processStreamData($line);
+                echo "$line";
+                flush();
             }
+            echo "id: \nevent: done\ndata: {}\n\n";
         });
         $response->headers->set('Content-Type', 'text/event-stream');
         $response->headers->set('Transfer-Encoding', 'chunked');
         $response->headers->set('X-Accel-Buffering', 'no');
         $response->headers->set('Cache-Control', 'no-cache');
         $response->send();
-    }
-
-    protected function processStreamData($response)
-    {
-        $lines = explode("\n", $response);
-//        Log::info('开始接收数据:'.$response);
-        foreach ($lines as $line) {
-            if (strpos($line, 'data:') === 0) {
-                $data = substr($line, 5);
-//                Log::info('数据内容:'.$data);
-                try{
-                    $decodedData = json_decode($data, true);
-                }catch (\Throwable $throwable){
-//                    Log::info('JSON不合法:'.$data);
-                    continue;
-                }
-//                Log::info('JSON内容:'.json_encode($decodedData));
-                if (isset($decodedData['output']['choices'][0]['message']['content'])) {
-                    echo 'data: '.$decodedData['output']['choices'][0]['message']['content'];
-//                    Log::info('流式输出:'.$data);
-                    flush();
-                }
-            }
-        }
     }
 }
