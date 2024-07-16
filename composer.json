@@ -3,7 +3,7 @@
     "alias": "AI角色模块",
     "description": "提供AI角色管理和定制",
     "type": "library",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "keywords": ["extension"],
     "homepage": "https://github.com/mano-code/ai-roles",
     "license": "MIT",
@@ -15,7 +15,8 @@
     ],
     "require": {
         "php": ">=8.0",
-        "slowlyo/owl-admin": "*"
+        "slowlyo/owl-admin": "*",
+        "mano-code/filesystem": "*"
     },
     "autoload": {
         "psr-4": {
