@@ -10,18 +10,16 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        // 角色分类
-        \ManoCode\AiRoles\Models\AiRolesCate::query()->insert(collect(json_decode(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'roles_cate.json'), true))->map(function ($item) {
-            $insertData = [];
-            $insertData['cate_name'] = $item['tag_name'];
-            $insertData['cate_desc'] = $item['tag_name'];
-            $insertData['state'] = 1;
-            $insertData['created_at'] = date('Y-m-d H:i:s');
-            $insertData['updated_at'] = date('Y-m-d H:i:s');
-            return $insertData;
-        })->toArray());
-        // 角色分类
+        // 角色以及分类
         \ManoCode\AiRoles\Models\AiRole::query()->insert(collect(json_decode(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'roles.json'), true))->map(function ($item) {
+            if(!($cate = \ManoCode\AiRoles\Models\AiRolesCate::query()->where('name',$item['cate']['name'])->first())){
+                $cate = new \ManoCode\AiRoles\Models\AiRolesCate();
+                $cate->setAttribute('cate_name',$item['cate']['name']);
+                $cate->setAttribute('cate_icon',$item['cate']['icon']);
+                $cate->setAttribute('created_at',date('Y-m-d H:i:s'));
+                $cate->setAttribute('updated_at',date('Y-m-d H:i:s'));
+                $cate->save();
+            }
             $insertData = [];
             $insertData['role_name'] = $item['name'];
             $insertData['desc'] = $item['desc'];
@@ -33,7 +31,7 @@ return new class extends Migration {
             }
             $insertData['state'] = 1;
             $insertData['questions'] = json_encode($item['questions']);
-            $insertData['cate_id'] = \ManoCode\AiRoles\Models\AiRolesCate::query()->where('cate_name', $item['cate']['name'])->value('id');
+            $insertData['cate_id'] = $cate->getAttribute('id');
             $insertData['created_at'] = date('Y-m-d H:i:s');
             $insertData['updated_at'] = date('Y-m-d H:i:s');
             return $insertData;
