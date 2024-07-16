@@ -20,3 +20,25 @@ $response = $qwenChat->sendMessage('Hello, World!', 'This is a system prompt.', 
 
 ```
 
+
+
+
+#### 接口文档
+
+1. 获取分类以及 分类下的角色列表
+```
+http://localhost:8000/airole/airole/get-role-lists
+```
+
+2. 获取角色的问题提示
+
+```
+http://localhost:8000/airole/get-role-questions?role_id=1
+```
+
+3. 发起对话
+
+```
+http://localhost:8000/airole/chat?role_id=1&message=帮我写一个电脑推销方案
+```
+
