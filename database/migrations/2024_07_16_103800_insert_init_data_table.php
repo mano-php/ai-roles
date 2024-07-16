@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         // 角色以及分类
         \ManoCode\AiRoles\Models\AiRole::query()->insert(collect(json_decode(file_get_contents(__DIR__ . DIRECTORY_SEPARATOR . 'roles.json'), true))->map(function ($item) {
-            if(!($cate = \ManoCode\AiRoles\Models\AiRolesCate::query()->where('name',$item['cate']['name'])->first())){
+            if(!($cate = \ManoCode\AiRoles\Models\AiRolesCate::query()->where('cate_name',$item['cate']['name'])->first())){
                 $cate = new \ManoCode\AiRoles\Models\AiRolesCate();
                 $cate->setAttribute('cate_name',$item['cate']['name']);
                 $cate->setAttribute('cate_icon',$item['cate']['icon']);
